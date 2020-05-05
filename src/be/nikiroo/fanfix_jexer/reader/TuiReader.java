@@ -1,13 +1,11 @@
 package be.nikiroo.fanfix_jexer.reader;
 
-import java.io.IOException;
+import java.io.Reader;
 
-import jexer.TApplication;
-import jexer.TApplication.BackendType;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.reader.BasicReader;
-import be.nikiroo.fanfix.reader.Reader;
-import be.nikiroo.fanfix.supported.SupportType;
+import jexer.TApplication;
+import jexer.TApplication.BackendType;
 
 /**
  * This {@link Reader}is based upon the TUI widget library 'jexer'
@@ -50,58 +48,13 @@ public class TuiReader extends BasicReader {
 		return backendType;
 	}
 
-	@Override
-	public void read(boolean sync) throws IOException {
-		// TODO
-		if (!sync) {
-			// How could you do a not-sync in TUI mode?
-			throw new java.lang.IllegalStateException(
-					"Async mode not implemented yet.");
-		}
-
-		try {
-			TuiReaderApplication app = new TuiReaderApplication(this,
-					guessBackendType());
-			app.run();
-		} catch (Exception e) {
-			Instance.getInstance().getTraceHandler().error(e);
-		}
-	}
-
-	@Override
-	public void browse(String source) {
+	public void start(String source) {
 		try {
 			TuiReaderApplication app = new TuiReaderApplication(this, source,
 					guessBackendType());
 			app.run();
 		} catch (Exception e) {
 			Instance.getInstance().getTraceHandler().error(e);
-		}
-	}
-
-	@Override
-	public void search(boolean sync) throws IOException {
-		// TODO
-		if (sync) {
-			throw new java.lang.IllegalStateException("Not implemented yet.");
-		}
-	}
-
-	@Override
-	public void search(SupportType searchOn, String keywords, int page,
-			int item, boolean sync) {
-		// TODO
-		if (sync) {
-			throw new java.lang.IllegalStateException("Not implemented yet.");
-		}
-	}
-
-	@Override
-	public void searchTag(SupportType searchOn, int page, int item,
-			boolean sync, Integer... tags) {
-		// TODO
-		if (sync) {
-			throw new java.lang.IllegalStateException("Not implemented yet.");
 		}
 	}
 }

@@ -1,9 +1,6 @@
 package be.nikiroo.fanfix_jexer;
 
-import java.io.IOException;
-
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.reader.Reader.ReaderType;
 import be.nikiroo.fanfix_jexer.reader.TuiReader;
 
 /**
@@ -32,8 +29,6 @@ public class Main {
 		}
 
 		Instance.init();
-
-		TuiReader.setDefaultReaderType(ReaderType.TUI);
-		new TuiReader().browse(null);
+		new TuiReader().start(null);
 	}
 }

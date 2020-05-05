@@ -312,9 +312,7 @@ class TuiReaderMainWindow extends TWindow {
 
 	public void readStory(MetaData meta) {
 		try {
-			reader.setChapter(-1);
-			reader.setMeta(meta);
-			reader.read(false);
+			reader.read(meta, -1);
 		} catch (IOException e) {
 			Instance.getInstance().getTraceHandler().error(e);
 		}

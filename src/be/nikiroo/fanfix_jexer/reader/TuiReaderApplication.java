@@ -3,9 +3,17 @@ package be.nikiroo.fanfix_jexer.reader;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
+import java.io.Reader;
 import java.net.URL;
 import java.net.UnknownHostException;
 
+import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.reader.BasicReader;
+import be.nikiroo.fanfix.supported.BasicSupport;
+import be.nikiroo.fanfix_jexer.reader.TuiReaderMainWindow.Mode;
 import jexer.TApplication;
 import jexer.TCommand;
 import jexer.TKeypress;
@@ -18,15 +26,6 @@ import jexer.TWindow;
 import jexer.event.TCommandEvent;
 import jexer.event.TMenuEvent;
 import jexer.menu.TMenu;
-import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.data.MetaData;
-import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.fanfix.library.BasicLibrary;
-import be.nikiroo.fanfix.reader.BasicReader;
-import be.nikiroo.fanfix.reader.Reader;
-import be.nikiroo.fanfix.supported.SupportType;
-import be.nikiroo.fanfix_jexer.reader.TuiReaderMainWindow.Mode;
-import be.nikiroo.utils.Progress;
 
 /**
  * Manages the TUI general mode and links and manages the {@link TWindow}s.
@@ -36,7 +35,7 @@ import be.nikiroo.utils.Progress;
  * 
  * @author niki
  */
-class TuiReaderApplication extends TApplication implements Reader {
+class TuiReaderApplication extends TApplication {
 	public static final int MENU_FILE_OPEN = 1025;
 	public static final int MENU_FILE_IMPORT_URL = 1026;
 	public static final int MENU_FILE_IMPORT_FILE = 1027;
@@ -52,21 +51,10 @@ class TuiReaderApplication extends TApplication implements Reader {
 	public static final TCommand CMD_EXIT = new TCommand(MENU_FILE_EXIT) {
 	};
 
-	private Reader reader;
+	private TuiReader reader;
 	private TuiReaderMainWindow main;
 
-	// start reading if meta present
-	public TuiReaderApplication(Reader reader, BackendType backend)
-			throws Exception {
-		super(backend);
-		init(reader);
-
-		if (getMeta() != null) {
-			read(false);
-		}
-	}
-
-	public TuiReaderApplication(Reader reader, String source,
+	public TuiReaderApplication(TuiReader reader, String source,
 			TApplication.BackendType backend) throws Exception {
 		super(backend);
 		init(reader);
@@ -75,80 +63,17 @@ class TuiReaderApplication extends TApplication implements Reader {
 		main.setMode(Mode.SOURCE, source);
 	}
 
-	@Override
-	public void read(boolean sync) throws IOException {
-		read(getStory(null), sync);
-	}
-
-	@Override
-	public MetaData getMeta() {
-		return reader.getMeta();
-	}
-
-	@Override
-	public Story getStory(Progress pg) throws IOException {
-		return reader.getStory(pg);
-	}
-
-	@Override
+	/**
+	 * @deprecated use {@link Instance} instead
+	 */
+	@Deprecated
 	public BasicLibrary getLibrary() {
-		return reader.getLibrary();
+		return Instance.getInstance().getLibrary();
 	}
-
-	@Override
-	public void setLibrary(BasicLibrary lib) {
-		reader.setLibrary(lib);
-	}
-
-	@Override
-	public void setMeta(MetaData meta) throws IOException {
-		reader.setMeta(meta);
-	}
-
-	@Override
-	public void setMeta(String luid) throws IOException {
-		reader.setMeta(luid);
-	}
-
-	@Override
-	public void setMeta(URL source, Progress pg) throws IOException {
-		reader.setMeta(source, pg);
-	}
-
-	@Override
-	public void browse(String source) {
-		try {
-			reader.browse(source);
-		} catch (IOException e) {
-			Instance.getInstance().getTraceHandler().error(e);
-		}
-	}
-
-	@Override
-	public int getChapter() {
-		return reader.getChapter();
-	}
-
-	@Override
-	public void setChapter(int chapter) {
-		reader.setChapter(chapter);
-	}
-
-	@Override
-	public void search(boolean sync) throws IOException {
-		reader.search(sync);
-	}
-
-	@Override
-	public void search(SupportType searchOn, String keywords, int page,
-			int item, boolean sync) throws IOException {
-		reader.search(searchOn, keywords, page, item, sync);
-	}
-
-	@Override
-	public void searchTag(SupportType searchOn, int page, int item,
-			boolean sync, Integer... tags) throws IOException {
-		reader.searchTag(searchOn, page, item, sync, tags);
+	
+	public void read(MetaData meta, int chap) throws IOException {
+		Story story = getLibrary().getStory(meta.getLuid(), null);
+		read(story, chap);
 	}
 
 	/**
@@ -157,25 +82,22 @@ class TuiReaderApplication extends TApplication implements Reader {
 	 * 
 	 * @param story
 	 *            the {@link Story} to read
-	 * @param sync
-	 *            execute the process synchronously (wait until it is terminated
-	 *            before returning)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O errors
 	 */
-	public void read(Story story, boolean sync) throws IOException {
+	public void read(Story story, int chap) throws IOException {
 		if (story == null) {
 			throw new IOException("No story to read");
 		}
 
 		// TODO: open in editor + external option
 		if (!story.getMeta().isImageDocument()) {
-			TWindow window = new TuiReaderStoryWindow(this, story, getChapter());
+			TWindow window = new TuiReaderStoryWindow(this, story, chap);
 			window.maximize();
 		} else {
 			try {
-				openExternal(getLibrary(), story.getMeta().getLuid(), sync);
+				openExternal(getLibrary(), story.getMeta().getLuid(), false);
 			} catch (IOException e) {
 				messageBox("Error when trying to open the story",
 						e.getMessage(), TMessageBox.Type.OK);
@@ -215,7 +137,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 		}
 	}
 
-	private void init(Reader reader) {
+	private void init(TuiReader reader) {
 		this.reader = reader;
 
 		// TODO: traces/errors?
@@ -272,8 +194,21 @@ class TuiReaderApplication extends TApplication implements Reader {
 			String openfile = null;
 			try {
 				openfile = fileOpenBox(".");
-				reader.setMeta(BasicReader.getUrl(openfile), null);
-				read(false);
+				URL url = BasicReader.getUrl(openfile);
+				
+				try {
+					BasicSupport support = BasicSupport
+							.getSupport(BasicReader.getUrl(openfile));
+					if (support == null) {
+						Instance.getInstance().getTraceHandler()
+								.error("URL not supported: " + openfile);
+					}
+
+					read(support.process(null), -1);
+				} catch (IOException e) {
+					Instance.getInstance().getTraceHandler()
+							.error(new IOException("Failed to read book", e));
+				}
 			} catch (IOException e) {
 				// TODO: i18n
 				error("Fail to open file"
@@ -299,7 +234,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 					+ story + "\"", Type.OKCANCEL);
 			if (mbox.getResult() == Result.OK) {
 				try {
-					reader.getLibrary().delete(luid);
+					getLibrary().delete(luid);
 					if (main != null) {
 						main.refreshStories();
 					}
@@ -385,7 +320,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 	 */
 	private boolean imprt(String url) throws IOException {
 		try {
-			reader.getLibrary().imprt(BasicReader.getUrl(url), null);
+			getLibrary().imprt(BasicReader.getUrl(url), null);
 			main.refreshStories();
 			return true;
 		} catch (UnknownHostException e) {
@@ -393,7 +328,6 @@ class TuiReaderApplication extends TApplication implements Reader {
 		}
 	}
 
-	@Override
 	public void openExternal(BasicLibrary lib, String luid, boolean sync)
 			throws IOException {
 		reader.openExternal(lib, luid, sync);
