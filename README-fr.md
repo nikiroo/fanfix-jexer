@@ -4,6 +4,8 @@
 
 Fanfix-jexer est un programme qui offre une interface texte (via la librairie Jexer) à la librairie de téléchargement de comics/histoires/mangas [Fanfix](https://github.com/nikiroo/fanfix).
 
+Vous pouvez aussi en avoir une version graphique, [Fanfix-swing](https://github.com/nikiroo/fanfix-swing).
+
 ## Synopsis
 
 - ```fanfix-jexer```
