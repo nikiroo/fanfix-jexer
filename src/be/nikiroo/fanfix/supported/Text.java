@@ -102,7 +102,7 @@ class Text extends BasicSupport {
 	}
 
 	private String getLang() {
-		@SuppressWarnings("resource")
+		@SuppressWarnings("resource") // cannot close, or we loose getInput()!
 		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
 		scan.next(); // Title
@@ -128,14 +128,14 @@ class Text extends BasicSupport {
 	}
 
 	private String getTitle() {
-		@SuppressWarnings("resource")
+		@SuppressWarnings("resource") // cannot close, or we loose getInput()!
 		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
 		return scan.next();
 	}
 
 	private String getAuthor() {
-		@SuppressWarnings("resource")
+		@SuppressWarnings("resource") // cannot close, or we loose getInput()!
 		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
 		scan.next();
@@ -151,7 +151,7 @@ class Text extends BasicSupport {
 	}
 
 	private String getDate() {
-		@SuppressWarnings("resource")
+		@SuppressWarnings("resource") // cannot close, or we loose getInput()!
 		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
 		scan.next();
@@ -215,12 +215,13 @@ class Text extends BasicSupport {
 	protected List<Entry<String, URL>> getChapters(Progress pg)
 			throws IOException {
 		List<Entry<String, URL>> chaps = new ArrayList<Entry<String, URL>>();
-		@SuppressWarnings("resource")
+		@SuppressWarnings("resource") // cannot close, or we loose getInput()!
 		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
-		boolean prevLineEmpty = false;
+		String line = "first is not empty";
 		while (scan.hasNext()) {
-			String line = scan.next();
+			boolean prevLineEmpty = line.trim().isEmpty();
+			line = scan.next();
 			if (prevLineEmpty && detectChapter(line, chaps.size() + 1) != null) {
 				String chapName = Integer.toString(chaps.size() + 1);
 				int pos = line.indexOf(':');
@@ -232,10 +233,8 @@ class Text extends BasicSupport {
 						chapName, //
 						getSourceFile().toURI().toURL()));
 			}
-
-			prevLineEmpty = line.trim().isEmpty();
 		}
-
+		
 		return chaps;
 	}
 
@@ -243,17 +242,27 @@ class Text extends BasicSupport {
 	protected String getChapterContent(URL source, int number, Progress pg)
 			throws IOException {
 		StringBuilder builder = new StringBuilder();
-		@SuppressWarnings("resource")
+		@SuppressWarnings("resource") // cannot close, or we loose getInput()!
 		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
-		boolean inChap = false;
+		scan.next(); // title
+		scan.next(); // author
+		scan.next(); // date or empty
+		Boolean inChap = null;
+		String line = "";
 		while (scan.hasNext()) {
-			String line = scan.next();
-			if (!inChap && detectChapter(line, number) != null) {
+			if (number == 0 && !line.trim().isEmpty()) {
+				// We found pre-chapter content, we are checking for
+				// Chapter 0 (fake chapter) --> keep the content
+				if (inChap == null)
+					inChap = true;
+			}
+			line = scan.next();
+			if ((inChap == null || !inChap) && detectChapter(line, number) != null) {
 				inChap = true;
 			} else if (detectChapter(line, number + 1) != null) {
 				break;
-			} else if (inChap) {
+			} else if (inChap != null && inChap) {
 				builder.append(line);
 				builder.append("\n");
 			}

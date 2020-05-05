@@ -54,7 +54,7 @@ class EHentai extends BasicSupport_Deprecated {
 		// There is no chapters on e621, just pagination...
 		Story story = super.process(url, pg);
 
-		Chapter only = new Chapter(1, null);
+		Chapter only = new Chapter(1, "");
 		for (Chapter chap : story) {
 			only.getParagraphs().addAll(chap.getParagraphs());
 		}
@@ -118,7 +118,7 @@ class EHentai extends BasicSupport_Deprecated {
 			} else if (langLine.equalsIgnoreCase("French")) {
 				lang = "fr";
 			} else {
-				// TODO find the code?
+				// TODO find the code for other languages?
 				lang = langLine;
 			}
 		}

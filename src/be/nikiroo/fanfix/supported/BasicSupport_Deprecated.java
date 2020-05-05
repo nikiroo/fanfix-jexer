@@ -317,7 +317,6 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 
 						words += cc.getWords();
 						story.getChapters().add(cc);
-						story.getMeta().setWords(words);
 					} finally {
 						if (chapIn != null) {
 							chapIn.close();
@@ -326,14 +325,31 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 
 					i++;
 				}
+				
+				story.getMeta().setWords(words);
 
 				pgChaps.setName("Extracting chapters");
 			} else {
 				pg.setProgress(80);
 			}
 
-			return story;
+			// Check for "no chapters" stories
+			if (story.getChapters().isEmpty()
+					&& story.getMeta().getResume() != null
+					&& !story.getMeta().getResume().getParagraphs().isEmpty()) {
+				Chapter resume = story.getMeta().getResume();
+				resume.setName("");
+				resume.setNumber(1);
+				story.getChapters().add(resume);
+				story.getMeta().setWords(resume.getWords());
 
+				String descChapterName = Instance.getInstance().getTrans()
+						.getString(StringId.DESCRIPTION);
+				resume = new Chapter(0, descChapterName);
+				story.getMeta().setResume(resume);
+			}
+
+			return story;
 		} finally {
 			close();
 
@@ -373,7 +389,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 	 * @param pg
 	 *            the optional progress reporter
 	 * 
-	 * @return the {@link Chapter}
+	 * @return the {@link Chapter}, never NULL
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -429,7 +445,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 	 * @param pg
 	 *            the optional progress reporter
 	 * 
-	 * @return the {@link Paragraph}s
+	 * @return the {@link Paragraph}s (can be empty, but never NULL)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -447,7 +463,6 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 		}
 
 		List<Paragraph> paras = new ArrayList<Paragraph>();
-
 		if (content != null && !content.trim().isEmpty()) {
 			if (isHtml()) {
 				String[] tab = content.split("(<p>|</p>|<br>|<br/>)");
@@ -512,7 +527,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 	 * @param line
 	 *            the textual content of the paragraph
 	 * 
-	 * @return the {@link Paragraph}
+	 * @return the {@link Paragraph}, never NULL
 	 */
 	private Paragraph makeParagraph(URL source, String line) {
 		Image image = null;
@@ -862,7 +877,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 	 * @param line
 	 *            the raw line
 	 * 
-	 * @return the processed {@link Paragraph}
+	 * @return the processed {@link Paragraph}, never NULL
 	 */
 	protected Paragraph processPara(String line) {
 		line = ifUnhtml(line).trim();

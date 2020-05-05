@@ -48,7 +48,6 @@ public class InfoReader {
 						meta.getUrl())) {
 
 					// TODO: not nice, would be better to do it properly...
-
 					String base = infoFile.getPath();
 					if (base.endsWith(".info")) {
 						base = base.substring(0,
@@ -62,45 +61,8 @@ public class InfoReader {
 						textFile = new File(base + ".text");
 					}
 
-					if (textFile.exists()) {
-						final URL source = textFile.toURI().toURL();
-						final MetaData[] superMetaA = new MetaData[1];
-						@SuppressWarnings("unused")
-						Text unused = new Text() {
-							private boolean loaded = loadDocument();
-
-							@Override
-							public SupportType getType() {
-								return SupportType.TEXT;
-							}
-
-							protected boolean loadDocument()
-									throws IOException {
-								loadDocument(source);
-								superMetaA[0] = getMeta();
-								return true;
-							}
-
-							@Override
-							protected Image getCover(File sourceFile) {
-								return null;
-							}
-						};
-
-						MetaData superMeta = superMetaA[0];
-						if (!hasIt(meta.getTitle())) {
-							meta.setTitle(superMeta.getTitle());
-						}
-						if (!hasIt(meta.getAuthor())) {
-							meta.setAuthor(superMeta.getAuthor());
-						}
-						if (!hasIt(meta.getDate())) {
-							meta.setDate(superMeta.getDate());
-						}
-						if (!hasIt(meta.getUrl())) {
-							meta.setUrl(superMeta.getUrl());
-						}
-					}
+					completeMeta(textFile, meta);
+					//
 				}
 
 				return meta;
@@ -112,6 +74,60 @@ public class InfoReader {
 		throw new FileNotFoundException(
 				"File given as argument does not exists: "
 						+ infoFile.getAbsolutePath());
+	}
+	
+	/**
+	 * Complete the given {@link MetaData} with the original text file if needed
+	 * and possible.
+	 * 
+	 * @param textFile
+	 *            the original text file
+	 * @param meta
+	 *            the {@link MetaData} to complete if needed and possible
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	static public void completeMeta(File textFile,
+			MetaData meta)	throws IOException {
+		if (textFile != null && textFile.exists()) {
+			final URL source = textFile.toURI().toURL();
+			final MetaData[] superMetaA = new MetaData[1];
+			@SuppressWarnings("unused")
+			Text unused = new Text() {
+				private boolean loaded = loadDocument();
+
+				@Override
+				public SupportType getType() {
+					return SupportType.TEXT;
+				}
+
+				protected boolean loadDocument() throws IOException {
+					loadDocument(source);
+					superMetaA[0] = getMeta();
+					return true;
+				}
+
+				@Override
+				protected Image getCover(File sourceFile) {
+					return null;
+				}
+			};
+
+			MetaData superMeta = superMetaA[0];
+			if (!hasIt(meta.getTitle())) {
+				meta.setTitle(superMeta.getTitle());
+			}
+			if (!hasIt(meta.getAuthor())) {
+				meta.setAuthor(superMeta.getAuthor());
+			}
+			if (!hasIt(meta.getDate())) {
+				meta.setDate(superMeta.getDate());
+			}
+			if (!hasIt(meta.getUrl())) {
+				meta.setUrl(superMeta.getUrl());
+			}
+		}
 	}
 
 	/**

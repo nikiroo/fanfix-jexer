@@ -241,22 +241,22 @@ public abstract class BasicSearchable {
 		if (type != null) {
 			switch (type) {
 			case FIMFICTION:
-				// TODO
+				// TODO searchable for FIMFICTION
 				break;
 			case FANFICTION:
 				support = new Fanfiction(type);
 				break;
 			case MANGAHUB:
-				// TODO
+				// TODO searchable for MANGAHUB
 				break;
 			case E621:
-				// TODO
+				// TODO searchable for E621
 				break;
 			case YIFFSTAR:
-				// TODO
+				// TODO searchable for YIFFSTAR
 				break;
 			case E_HENTAI:
-				// TODO
+				// TODO searchable for E_HENTAI
 				break;
 			case MANGA_LEL:
 				support = new MangaLel();

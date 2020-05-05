@@ -374,7 +374,25 @@ public abstract class BasicSupport {
 		sourceNode = loadDocument(source);
 
 		try {
-			return doProcess(pg);
+			Story story = doProcess(pg);
+			
+			// Check for "no chapters" stories
+			if (story.getChapters().isEmpty()
+					&& story.getMeta().getResume() != null
+					&& !story.getMeta().getResume().getParagraphs().isEmpty()) {
+				Chapter resume = story.getMeta().getResume();
+				resume.setName("");
+				resume.setNumber(1);
+				story.getChapters().add(resume);
+				story.getMeta().setWords(resume.getWords());
+
+				String descChapterName = Instance.getInstance().getTrans()
+						.getString(StringId.DESCRIPTION);
+				resume = new Chapter(0, descChapterName);
+				story.getMeta().setResume(resume);
+			}
+			
+			return story;
 		} finally {
 			close();
 		}
@@ -414,7 +432,7 @@ public abstract class BasicSupport {
 		story.setChapters(new ArrayList<Chapter>());
 		List<Entry<String, URL>> chapters = getChapters(pgGetChapters);
 		pgGetChapters.done(); // 20%
-
+		
 		if (chapters != null) {
 			Progress pgChaps = new Progress("Extracting chapters", 0,
 					chapters.size() * 300);
@@ -445,10 +463,11 @@ public abstract class BasicSupport {
 
 				words += cc.getWords();
 				story.getChapters().add(cc);
-				story.getMeta().setWords(words);
 
 				i++;
 			}
+			
+			story.getMeta().setWords(words);
 
 			pgChaps.setName("Extracting chapters");
 			pgChaps.done();
@@ -471,7 +490,8 @@ public abstract class BasicSupport {
 	 *            the chapter name
 	 * @param content
 	 *            the content of the chapter
-	 * @return the {@link Chapter}
+	 *            
+	 * @return the {@link Chapter}, never NULL
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error

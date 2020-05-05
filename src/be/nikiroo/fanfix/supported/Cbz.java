@@ -168,7 +168,7 @@ class Cbz extends Epub {
 			}
 
 			if (!imagesList.isEmpty()) {
-				Chapter chap = new Chapter(story.getChapters().size() + 1, null);
+				Chapter chap = new Chapter(story.getChapters().size() + 1, "");
 				story.getChapters().add(chap);
 
 				for (String uuid : imagesList) {

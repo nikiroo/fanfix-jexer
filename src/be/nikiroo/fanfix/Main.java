@@ -22,8 +22,7 @@ import be.nikiroo.fanfix.library.RemoteLibraryServer;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.BasicReader;
-import be.nikiroo.fanfix.reader.Reader;
-import be.nikiroo.fanfix.reader.Reader.ReaderType;
+import be.nikiroo.fanfix.reader.CliReader;
 import be.nikiroo.fanfix.searchable.BasicSearchable;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.SupportType;
@@ -38,7 +37,7 @@ import be.nikiroo.utils.serial.server.ServerObject;
  */
 public class Main {
 	private enum MainAction {
-		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION, SERVER, STOP_SERVER, REMOTE, SET_SOURCE, SET_TITLE, SET_AUTHOR, SEARCH, SEARCH_TAG
+		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, START, VERSION, SERVER, STOP_SERVER, REMOTE, SET_SOURCE, SET_TITLE, SET_AUTHOR, SEARCH, SEARCH_TAG
 	}
 
 	/**
@@ -76,8 +75,6 @@ public class Main {
 	 * <li>--set-source [id] [new source]: change the source of the given story</li>
 	 * <li>--set-title [id] [new title]: change the title of the given story</li>
 	 * <li>--set-author [id] [new author]: change the author of the given story</li>
-	 * <li>--set-reader [reader type]: set the reader type to CLI, TUI or LOCAL
-	 * for this command</li>
 	 * <li>--version: get the version of the program</li>
 	 * <li>--server: start the server mode (see config file for parameters)</li>
 	 * <li>--stop-server: stop the running server on this port if any</li>
@@ -314,10 +311,6 @@ public class Main {
 			case HELP:
 				exitCode = 255;
 				break;
-			case SET_READER:
-				exitCode = setReaderType(args[i]);
-				action = MainAction.START;
-				break;
 			case START:
 				exitCode = 255; // not supposed to be selected by user
 				break;
@@ -339,10 +332,11 @@ public class Main {
 					port = Integer.parseInt(args[i]);
 
 					BasicLibrary lib = new RemoteLibrary(key, host, port);
-					lib = new CacheLibrary(Instance.getInstance().getRemoteDir(host), lib,
+					lib = new CacheLibrary(
+							Instance.getInstance().getRemoteDir(host), lib,
 							Instance.getInstance().getUiConfig());
 
-					BasicReader.setDefaultLibrary(lib);
+					Instance.getInstance().setLibrary(lib);
 
 					action = MainAction.START;
 				} else {
@@ -413,11 +407,6 @@ public class Main {
 				updates.ok(); // we consider it read
 				break;
 			case LIST:
-				if (BasicReader.getReader() == null) {
-					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
-					exitCode = 10;
-					break;
-				}
 				exitCode = list(sourceString);
 				break;
 			case SET_SOURCE:
@@ -445,20 +434,46 @@ public class Main {
 				}
 				break;
 			case READ:
-				if (BasicReader.getReader() == null) {
-					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
-					exitCode = 10;
+				if (luid == null || luid.isEmpty()) {
+					syntax(false);
+					exitCode = 255;
 					break;
 				}
-				exitCode = read(luid, chapString, true);
+
+				try {
+					BasicLibrary lib = Instance.getInstance().getLibrary();
+					exitCode = read(lib.getStory(luid, null), chapString);
+				} catch (IOException e) {
+					Instance.getInstance().getTraceHandler()
+							.error(new IOException("Failed to read book", e));
+					exitCode = 2;
+				}
+
 				break;
 			case READ_URL:
-				if (BasicReader.getReader() == null) {
-					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
-					exitCode = 10;
+				if (urlString == null || urlString.isEmpty()) {
+					syntax(false);
+					exitCode = 255;
 					break;
 				}
-				exitCode = read(urlString, chapString, false);
+
+				try {
+					BasicSupport support = BasicSupport
+							.getSupport(BasicReader.getUrl(urlString));
+					if (support == null) {
+						Instance.getInstance().getTraceHandler()
+								.error("URL not supported: " + urlString);
+						exitCode = 2;
+						break;
+					}
+
+					exitCode = read(support.process(null), chapString);
+				} catch (IOException e) {
+					Instance.getInstance().getTraceHandler()
+							.error(new IOException("Failed to read book", e));
+					exitCode = 2;
+				}
+
 				break;
 			case SEARCH:
 				page = page == null ? 1 : page;
@@ -475,19 +490,13 @@ public class Main {
 					break;
 				}
 
-				if (BasicReader.getReader() == null) {
-					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
-					exitCode = 10;
-					break;
-				}
-
 				try {
 					if (searchOn == null) {
-						BasicReader.getReader().search(true);
+						new CliReader().listSearchables();
 					} else if (search != null) {
 
-						BasicReader.getReader().search(searchOn, search, page,
-								item, true);
+						new CliReader().searchBooksByKeyword(searchOn, search, page,
+								item);
 					} else {
 						exitCode = 255;
 					}
@@ -517,15 +526,9 @@ public class Main {
 					break;
 				}
 
-				if (BasicReader.getReader() == null) {
-					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
-					exitCode = 10;
-					break;
-				}
-
 				try {
-					BasicReader.getReader().searchTag(searchOn, page, item,
-							true, tags.toArray(new Integer[] {}));
+					new CliReader().searchBooksByTag(searchOn, page, item,
+							tags.toArray(new Integer[] {}));
 				} catch (IOException e1) {
 					Instance.getInstance().getTraceHandler().error(e1);
 				}
@@ -534,9 +537,6 @@ public class Main {
 			case HELP:
 				syntax(true);
 				exitCode = 0;
-				break;
-			case SET_READER:
-				exitCode = 255;
 				break;
 			case VERSION:
 				System.out
@@ -547,13 +547,8 @@ public class Main {
 				updates.ok(); // we consider it read
 				break;
 			case START:
-				if (BasicReader.getReader() == null) {
-					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
-					exitCode = 10;
-					break;
-				}
 				try {
-					BasicReader.getReader().browse(null);
+					new CliReader().listBooks(null);
 				} catch (IOException e) {
 					Instance.getInstance().getTraceHandler().error(e);
 					exitCode = 66;
@@ -684,9 +679,8 @@ public class Main {
 	 * @return the exit return code (0 = success)
 	 */
 	private static int list(String source) {
-		BasicReader.setDefaultReaderType(ReaderType.CLI);
 		try {
-			BasicReader.getReader().browse(source);
+			new CliReader().listBooks(source);
 		} catch (IOException e) {
 			Instance.getInstance().getTraceHandler().error(e);
 			return 66;
@@ -699,41 +693,41 @@ public class Main {
 	 * Start the current reader for this {@link Story}.
 	 * 
 	 * @param story
-	 *            the LUID of the {@link Story} in the {@link LocalLibrary}
-	 *            <b>or</b> the {@link Story} {@link URL}
+	 *            the story to read
 	 * @param chapString
 	 *            which {@link Chapter} to read (starting at 1), or NULL to get
 	 *            the {@link Story} description
-	 * @param library
-	 *            TRUE if the source is the {@link Story} LUID, FALSE if it is a
-	 *            {@link URL}
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int read(String story, String chapString, boolean library) {
-		try {
-			Reader reader = BasicReader.getReader();
-			if (library) {
-				reader.setMeta(story);
-			} else {
-				reader.setMeta(BasicReader.getUrl(story), null);
+	private static int read(Story story, String chapString) {
+		Integer chap = null;
+		if (chapString != null) {
+			try {
+				chap = Integer.parseInt(chapString);
+			} catch (NumberFormatException e) {
+				Instance.getInstance().getTraceHandler().error(new IOException(
+						"Chapter number cannot be parsed: " + chapString, e));
+				return 2;
 			}
+		}
 
-			if (chapString != null) {
-				try {
-					reader.setChapter(Integer.parseInt(chapString));
-					reader.read(true);
-				} catch (NumberFormatException e) {
-					Instance.getInstance().getTraceHandler()
-							.error(new IOException("Chapter number cannot be parsed: " + chapString, e));
-					return 2;
+		if (story != null) {
+			try {
+				if (chap == null) {
+					new CliReader().listChapters(story);
+				} else {
+					new CliReader().printChapter(story, chap);
 				}
-			} else {
-				reader.read(true);
+			} catch (IOException e) {
+				Instance.getInstance().getTraceHandler()
+						.error(new IOException("Failed to read book", e));
+				return 2;
 			}
-		} catch (IOException e) {
-			Instance.getInstance().getTraceHandler().error(e);
-			return 1;
+		} else {
+			Instance.getInstance().getTraceHandler()
+					.error("Cannot find book: " + chapString);
+			return 2;
 		}
 
 		return 0;
@@ -860,26 +854,6 @@ public class Main {
 			System.out.println(trans(StringId.HELP_SYNTAX, typesIn, typesOut));
 		} else {
 			System.err.println(trans(StringId.ERR_SYNTAX));
-		}
-	}
-
-	/**
-	 * Set the default reader type for this session only (it can be changed in
-	 * the configuration file, too, but this value will override it).
-	 * 
-	 * @param readerTypeString
-	 *            the type
-	 */
-	private static int setReaderType(String readerTypeString) {
-		try {
-			ReaderType readerType = ReaderType.valueOf(readerTypeString
-					.toUpperCase());
-			BasicReader.setDefaultReaderType(readerType);
-			return 0;
-		} catch (IllegalArgumentException e) {
-			Instance.getInstance().getTraceHandler()
-					.error(new IOException("Unknown reader type: " + readerTypeString,	e));
-			return 1;
 		}
 	}
 }

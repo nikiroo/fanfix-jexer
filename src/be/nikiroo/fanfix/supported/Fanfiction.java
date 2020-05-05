@@ -45,7 +45,7 @@ class Fanfiction extends BasicSupport_Deprecated {
 		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");
-		meta.setLang("en"); // TODO!
+		meta.setLang("en"); // TODO find language of book
 		meta.setSubject(getSubject(reset(in)));
 		meta.setType(getType().toString());
 		meta.setImageDocument(false);

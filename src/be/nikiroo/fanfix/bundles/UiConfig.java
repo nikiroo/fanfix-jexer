@@ -31,6 +31,9 @@ public enum UiConfig {
 	@Meta(description = "The external viewer for non-images documents (or empty to use the system default program for the given file type)",//
 	format = Format.STRING)
 	NON_IMAGES_DOCUMENT_READER, //
+	@Meta(description = "The icon to use for the program",//
+	format = Format.FIXED_LIST, def = "default", list = { "default", "alternative", "magic-book", "pony-book", "pony-library" })
+	PROGRAM_ICON, //
 	//
 	// GUI settings (hidden in config)
 	//

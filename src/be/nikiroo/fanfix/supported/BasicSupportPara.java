@@ -60,7 +60,7 @@ public class BasicSupportPara {
 	 * @param html
 	 *            TRUE if the input content is in HTML mode
 	 * 
-	 * @return the {@link Chapter}
+	 * @return the {@link Chapter}, never NULL
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -202,7 +202,7 @@ public class BasicSupportPara {
 	 * @param html
 	 *            TRUE if the input content is in HTML mode
 	 * 
-	 * @return the processed {@link Paragraph}
+	 * @return the processed {@link Paragraph}, never NULL
 	 */
 	protected Paragraph processPara(String line, boolean html) {
 		if (html) {
@@ -423,7 +423,7 @@ public class BasicSupportPara {
 	 * @param pg
 	 *            the optional progress reporter
 	 * 
-	 * @return the {@link Paragraph}s
+	 * @return the {@link Paragraph}s (can be empty but never NULL)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -514,7 +514,7 @@ public class BasicSupportPara {
 	 * @param html
 	 *            TRUE if the input content is in HTML mode
 	 * 
-	 * @return the {@link Paragraph}
+	 * @return the {@link Paragraph}, never NULL
 	 */
 	protected Paragraph makeParagraph(BasicSupport support, URL source,
 			String line, boolean html) {

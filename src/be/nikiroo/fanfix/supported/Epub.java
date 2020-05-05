@@ -7,6 +7,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -107,6 +109,7 @@ class Epub extends InfoText {
 				if (!entry.isDirectory()
 						&& entry.getName().startsWith(getDataPrefix())) {
 					String entryLName = entry.getName().toLowerCase();
+					entryLName = entryLName.substring(getDataPrefix().length());
 
 					boolean imageEntry = false;
 					for (String ext : bsImages.getImageExt(false)) {
@@ -115,7 +118,7 @@ class Epub extends InfoText {
 						}
 					}
 
-					if (entry.getName().equals(getDataPrefix() + "version")) {
+					if (entryLName.equals("version")) {
 						// Nothing to do for now ("first"
 						// version is 3.0)
 					} else if (entryLName.endsWith(".info")) {
@@ -123,7 +126,7 @@ class Epub extends InfoText {
 						IOUtils.write(zipIn, tmpInfo);
 					} else if (imageEntry) {
 						// Cover
-						if (getCover()) {
+						if (getCover() && cover == null) {
 							try {
 								cover = new Image(zipIn);
 							} catch (Exception e) {
@@ -131,21 +134,19 @@ class Epub extends InfoText {
 										.error(e);
 							}
 						}
-					} else if (entry.getName()
-							.equals(getDataPrefix() + "URL")) {
+					} else if (entryLName.equals("url")) {
 						String[] descArray = StringUtils
 								.unhtml(IOUtils.readSmallStream(zipIn)).trim()
 								.split("\n");
 						if (descArray.length > 0) {
 							url = descArray[0].trim();
 						}
-					} else if (entry.getName().endsWith(".desc")) {
+					} else if (entryLName.endsWith(".desc")) {
 						// // For old files
 						// if (this.desc != null) {
 						// this.desc = IOUtils.readSmallStream(zipIn).trim();
 						// }
-					} else if (entry.getName()
-							.equals(getDataPrefix() + "SUMMARY")) {
+					} else if (entryLName.equals("summary")) {
 						String[] descArray = StringUtils
 								.unhtml(IOUtils.readSmallStream(zipIn)).trim()
 								.split("\n");
@@ -172,7 +173,7 @@ class Epub extends InfoText {
 				}
 			}
 
-			if (requireInfo() && (!tmp.exists() || !tmpInfo.exists())) {
+			if (requireInfo() && !tmp.exists()) {
 				throw new IOException(
 						"file not supported (maybe not created with this program or corrupt)");
 			}
@@ -187,21 +188,27 @@ class Epub extends InfoText {
 			} else {
 				if (title == null || title.isEmpty()) {
 					title = getSourceFileOriginal().getName();
-					if (title.toLowerCase().endsWith(".cbz")) {
-						title = title.substring(0, title.length() - 4);
+					String exts[] = new String[] {".epub", ".cbz"};
+					for (String ext : exts) {
+						if (title.toLowerCase().endsWith(ext)) {
+							title = title.substring(0,
+									title.length() - ext.length());
+						}
 					}
 					title = URLDecoder.decode(title, "UTF-8").trim();
 				}
 
 				meta = new MetaData();
 				meta.setLang("en");
-				meta.setTags(new ArrayList<String>());
+				meta.setTags(Arrays.asList("[no_info]"));
 				meta.setSource(getType().getSourceName());
 				meta.setUuid(url);
 				meta.setUrl(url);
 				meta.setTitle(title);
 				meta.setAuthor(author);
 				meta.setImageDocument(isImagesDocumentByDefault());
+				
+				InfoReader.completeMeta(tmp, meta);
 			}
 
 			if (meta.getCover() == null) {

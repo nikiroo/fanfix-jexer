@@ -216,7 +216,7 @@ class Html extends BasicOutput {
 			writer.write("			<div class='dialogue'>&mdash; ");
 			break;
 		case IMAGE:
-			// TODO
+			// TODO check if images work OK
 			writer.write("<a href='"
 					+ StringUtils.xmlEscapeQuote(para.getContent()) + "'>"
 					+ StringUtils.xmlEscape(para.getContent()) + "</a>");

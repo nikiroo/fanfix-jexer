@@ -149,7 +149,7 @@ class LaTeX extends BasicOutput {
 			lastWasQuote = true;
 			break;
 		case IMAGE:
-			// TODO
+			// TODO what about images in LaTeX?
 			break;
 		}
 	}

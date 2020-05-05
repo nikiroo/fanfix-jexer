@@ -147,10 +147,7 @@ public class Instance {
 		lib = createDefaultLibrary(remoteDir);
 
 		// create cache and TMP
-		File tmp = getFile(Config.CACHE_DIR, new File(configDir, "tmp"));
-		if (!tmp.isAbsolute()) {
-			tmp = new File(configDir, tmp.getPath());
-		}
+		File tmp = getFile(Config.CACHE_DIR, configDir, "tmp");
 		Image.setTemporaryFilesRoot(new File(tmp.getParent(), "tmp.images"));
 
 		String ua = config.getString(Config.NETWORK_USER_AGENT, "");
@@ -166,9 +163,8 @@ public class Instance {
 		cache.setTraceHandler(tracer);
 
 		// readerTmp / coverDir
-		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER, new File(configDir, "tmp-reader"));
-
-		coverDir = getFile(Config.DEFAULT_COVERS_DIR, new File(configDir, "covers"));
+		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER, configDir, "tmp-reader");
+		coverDir = getFile(Config.DEFAULT_COVERS_DIR, configDir, "covers");
 		coverDir.mkdirs();
 
 		try {
@@ -288,9 +284,9 @@ public class Instance {
 	}
 
 	/**
-	 * Get the (unique) {@link LocalLibrary} for the program.
+	 * Get the (unique) {@link BasicLibrary} for the program.
 	 * 
-	 * @return the {@link LocalLibrary}
+	 * @return the {@link BasicLibrary}
 	 */
 	public BasicLibrary getLibrary() {
 		if (lib == null) {
@@ -298,6 +294,18 @@ public class Instance {
 		}
 
 		return lib;
+	}
+
+	/**
+	 * Change the default {@link BasicLibrary} for this program.
+	 * <p>
+	 * Be careful.
+	 * 
+	 * @param lib
+	 *            the new {@link BasicLibrary}
+	 */
+	public void setLibrary(BasicLibrary lib) {
+		this.lib = lib;
 	}
 
 	/**
@@ -493,15 +501,12 @@ public class Instance {
 		} else {
 			String libDir = System.getenv("BOOKS_DIR");
 			if (libDir == null || libDir.isEmpty()) {
-				libDir = config.getString(Config.LIBRARY_DIR, "$HOME/Books");
-				if (!getFile(libDir).isAbsolute()) {
-					libDir = new File(configDir, libDir).getPath();
-				}
+				libDir = getFile(Config.LIBRARY_DIR, configDir, "$HOME/Books").getPath();
 			}
 			try {
-				lib = new LocalLibrary(getFile(libDir), config);
+				lib = new LocalLibrary(new File(libDir), config);
 			} catch (Exception e) {
-				tracer.error(new IOException("Cannot create library for directory: " + getFile(libDir), e));
+				tracer.error(new IOException("Cannot create library for directory: " + libDir, e));
 			}
 		}
 
@@ -512,38 +517,43 @@ public class Instance {
 	 * Return a path, but support the special $HOME variable.
 	 * 
 	 * @param id  the key for the path, which may contain "$HOME"
-	 * @param def the default value if none
+	 * @param configDir the directory to use as base if not absolute
+	 * @param def the default value if none (will be configDir-rooted if needed)
 	 * @return the path, with expanded "$HOME" if needed
 	 */
-	protected File getFile(Config id, File def) {
-		String path = config.getString(id, def.getPath());
-		return getFile(path);
+	protected File getFile(Config id, String configDir, String def) {
+		String path = config.getString(id, def);
+		return getFile(path, configDir);
 	}
 
 	/**
 	 * Return a path, but support the special $HOME variable.
 	 * 
 	 * @param id  the key for the path, which may contain "$HOME"
-	 * @param def the default value if none
+	 * @param configDir the directory to use as base if not absolute
+	 * @param def the default value if none (will be configDir-rooted if needed)
 	 * @return the path, with expanded "$HOME" if needed
 	 */
-	protected File getFile(UiConfig id, File def) {
-		String path = uiconfig.getString(id, def.getPath());
-		return getFile(path);
+	protected File getFile(UiConfig id, String configDir, String def) {
+		String path = uiconfig.getString(id, def);
+		return getFile(path, configDir);
 	}
 
 	/**
 	 * Return a path, but support the special $HOME variable.
 	 * 
 	 * @param path the path, which may contain "$HOME"
+	 * @param configDir the directory to use as base if not absolute
 	 * @return the path, with expanded "$HOME" if needed
 	 */
-	protected File getFile(String path) {
+	protected File getFile(String path, String configDir) {
 		File file = null;
 		if (path != null && !path.isEmpty()) {
 			path = path.replace('/', File.separatorChar);
 			if (path.contains("$HOME")) {
 				path = path.replace("$HOME", getHome());
+			} else if (!path.startsWith("/")) {
+				path = new File(configDir, path).getPath();
 			}
 
 			file = new File(path);

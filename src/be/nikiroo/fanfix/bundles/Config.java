@@ -16,9 +16,6 @@ public enum Config {
 	@Meta(description = "The language to use for in the program (example: en-GB, fr-BE...) or nothing for default system language (can be overwritten with the variable $LANG)",//
 	format = Format.LOCALE, list = { "en-GB", "fr-BE" })
 	LANG, //
-	@Meta(description = "The default reader type to use to read stories:\nCLI = simple output to console\nTUI = a Text User Interface with menus and windows, based upon Jexer\nGUI = a GUI with locally stored files, based upon Swing", //
-	hidden = true, format = Format.FIXED_LIST, list = { "CLI", "GUI", "TUI" }, def = "GUI")
-	READER_TYPE, //
 
 	@Meta(description = "File format options",//
 	group = true)
