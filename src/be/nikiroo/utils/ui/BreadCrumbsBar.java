@@ -44,7 +44,7 @@ public class BreadCrumbsBar<T> extends ListenerPanel {
 			}
 
 			if (!node.getChildren().isEmpty()) {
-				// TODO (see things with icons included in viewer)
+				// TODO allow an image or ">", viewer
 				down = new JToggleButton(">");
 				final JPopupMenu popup = new JPopupMenu();
 

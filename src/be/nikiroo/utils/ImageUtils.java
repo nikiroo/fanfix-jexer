@@ -42,6 +42,53 @@ public abstract class ImageUtils {
 			throws IOException;
 
 	/**
+	 * Scale a dimension.
+	 * 
+	 * @param areaWidth
+	 *            the base width of the target dimension for snap sizes
+	 * @param areaHeight
+	 *            the base height of the target dimension for snap sizes
+	 * @param imageWidth
+	 *            the actual image width
+	 * @param imageHeight
+	 *            the actual image height
+	 * @param zoom
+	 *            the zoom factor, or -1 for snap size
+	 * @param zoomSnapWidth
+	 *            if snap size, TRUE to snap to width (and FALSE, snap to
+	 *            height)
+	 * 
+	 * @return the scaled size, width is [0] and height is [1] (minimum is 1x1)
+	 */
+	protected static Integer[] scaleSize(int areaWidth, int areaHeight,
+			int imageWidth, int imageHeight, double zoom, boolean zoomSnapWidth) {
+		int width;
+		int height;
+		if (zoom > 0) {
+			width = (int) Math.round(imageWidth * zoom);
+			height = (int) Math.round(imageHeight * zoom);
+		} else {
+			if (zoomSnapWidth) {
+				width = areaWidth;
+				height = (int) Math.round(
+						(((double) areaWidth) / imageWidth) * imageHeight);
+			} else {
+				height = areaHeight;
+				width = (int) Math.round(
+						(((double) areaHeight) / imageHeight) * imageWidth);
+
+			}
+		}
+
+		if (width < 1)
+			width = 1;
+		if (height < 1)
+			height = 1;
+
+		return new Integer[] { width, height };
+	}
+	
+	/**
 	 * Return the EXIF transformation flag of this image if any.
 	 * 
 	 * <p>
