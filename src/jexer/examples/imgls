@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# This is a modified version of the 'imgls' from iTerm2 located at
+# https://iterm2.com/utilities/imgls, modified to emit images with the
+# Jexer image protocol.
+
+# tmux requires unrecognized OSC sequences to be wrapped with DCS tmux;
+# <sequence> ST, and for all ESCs in <sequence> to be replaced with ESC ESC. It
+# only accepts ESC backslash for ST.
+function print_osc() {
+    if [ x"$TERM" = "xscreen" ] ; then
+        printf "\033Ptmux;\033\033]"
+    else
+        printf "\033]"
+    fi
+}
+
+function check_dependency() {
+  if ! (builtin command -V "$1" > /dev/null 2>& 1); then
+    echo "imgcat: missing dependency: can't find $1" 1>& 2
+    exit 1
+  fi
+}
+
+# More of the tmux workaround described above.
+function print_st() {
+    if [ x"$TERM" = "xscreen" ] ; then
+        printf "\a\033\\"
+    else
+        printf "\a"
+    fi
+}
+
+function list_file() {
+  fn=$1
+  test -f "$fn" || return 0
+
+  if [ "${fn: -4}" == ".png" ]; then
+      print_osc
+      printf '444;1;1;'
+      base64 < "$fn"
+      print_st
+  elif [ "${fn: -4}" == ".jpg" ]; then
+      print_osc
+      printf '444;2;1;'
+      base64 < "$fn"
+      print_st
+  fi
+}
+
+check_dependency base64
+
+if [ $# -eq 0 ]; then
+  for fn in *
+  do
+     list_file "$fn"
+  done < <(ls -ls)
+else
+  for fn in "$@"
+  do
+     list_file "$fn"
+  done
+fi
+
