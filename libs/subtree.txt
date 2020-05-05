@@ -1,0 +1,20 @@
+# Subtrees
+
+# TODO: remove jexer subtree, work with an official version instead
+
+# The subtrees used for this program:
+# 	```git subtree add -P src/be/nikiroo/utils git@github.com:nikiroo/nikiroo-utils.git subtree```
+# 	```git subtree add -P src/be/nikiroo/fanfix git@github.com:nikiroo/fanfix.git subtree```
+# 	```git subtree add -P src/jexer git@github.com:nikiroo/jexer.git subtree```
+
+# Update all subtrees:
+# 
+# git subtree pull -P src/be/nikiroo/utils git@github.com:nikiroo/nikiroo-utils.git subtree
+# git subtree pull -P src/be/nikiroo/fanfix git@github.com:nikiroo/fanfix.git subtree
+# git subtree pull -P src/jexer git@github.com:nikiroo/jexer.git subtree
+
+# Push all subtrees:
+
+git subtree push -P src/be/nikiroo/utils git@github.com:nikiroo/nikiroo-utils.git subtree
+git subtree push -P src/be/nikiroo/fanfix git@github.com:nikiroo/fanfix.git subtree
+git subtree push -P src/jexer git@github.com:nikiroo/jexer.git subtree
