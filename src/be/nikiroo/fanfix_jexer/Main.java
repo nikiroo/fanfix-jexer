@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.reader.Reader.ReaderType;
-import be.nikiroo.fanfix.reader.tui.TuiReader;
+import be.nikiroo.fanfix_jexer.reader.TuiReader;
 
 /**
  * The main class of the application, the launcher.
@@ -34,10 +34,6 @@ public class Main {
 		Instance.init();
 
 		TuiReader.setDefaultReaderType(ReaderType.TUI);
-		try {
-			TuiReader.getReader().browse(null);
-		} catch (IOException e) {
-			Instance.getInstance().getTraceHandler().error(e);
-		}
+		new TuiReader().browse(null);
 	}
 }
