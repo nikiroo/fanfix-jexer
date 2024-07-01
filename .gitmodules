@@ -1,8 +1,8 @@
 [submodule "src/be/nikiroo/fanfix"]
 	path = src/be/nikiroo/fanfix
-	url = git@github.com:nikiroo/fanfix.git
+	url = ../fanfix.git
 	branch = subtree
 [submodule "src/be/nikiroo/utils"]
 	path = src/be/nikiroo/utils
-	url = git@github.com:nikiroo/nikiroo-utils.git
+	url = ../nikiroo-utils.git
 	branch = subtree
