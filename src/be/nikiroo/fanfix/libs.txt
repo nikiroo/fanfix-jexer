@@ -1,6 +1,0 @@
-# Required librairies:
-
-They are available in the other branches if needed:
-- libs/jsoup-1.10.3-sources.jar
-- libs/unbescape-1.1.4-sources.jar
-

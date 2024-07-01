@@ -92,8 +92,6 @@ Vous pouvez aussi importer les sources java dans, par exemple, [Eclipse](https:/
 
 Nécessaires :
 
-- ```src/be/nikiroo/utils```: quelques utilitaires partagés, inclus en tant que subtree
-- ```src/be/nikiroo/fanfix```: la librairie Fanfix sur laquelle tout le programme est basé, inclus en tant que subtree
 - ```src/be/nikiroo/jexer```: la librairie jexer avec quelques modification, inclus en tant que subtree
 - [```libs/unbescape-sources.jar```](https://github.com/unbescape/unbescape): une librairie sympathique pour convertir du texte depuis/vers beaucoup de formats ; utilisée ici pour la partie HTML
 - [```libs/jsoup-sources.jar```](https://jsoup.org/): une libraririe pour parser du HTML
@@ -102,6 +100,11 @@ Nécessaires :
 Optionnelles :
 
 - [```pandoc```](http://pandoc.org/): pour générer les man pages depuis les fichiers README, non inclu (pour l'utiliser, il faut que le programme ```pandoc``` soit disponible dans le PATH)
+
+Submodules:
+
+- ```src/be/nikiroo/utils```: quelques utilitaires partagés depuis [https://github.com/nikiroo/nikiroo-utils.git](https://github.com/nikiroo/nikiroo-utils.git) -- branche ```subtree```
+- ```src/be/nikiroo/fanfix```: la librairie Fanfix sur laquelle tout le programme est basé depuis [https://github.com/nikiroo/fanfix.git](https://github.com/nikiroo/fanfix.git) -- branche ```subtree```
 
 Rien d'autre, si ce n'est Java 1.6+.
 
