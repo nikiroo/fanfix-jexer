@@ -2,7 +2,7 @@ English [Français](README-fr.md)
 
 # Fanfix-jexer
 
-Fanfix-jexer is a program that offer you a text interface (via the Jexer librairy) around the comics/stories/mangas library [Fanfix](https://github.com/nikiroo/fanfix).
+Fanfix-jexer is a program that offer you a text interface (via the Jexer library) around the comics/stories/mangas library [Fanfix](https://github.com/nikiroo/fanfix).
 
 You can also use the graphical version, [Fanfix-swing](https://github.com/nikiroo/fanfix-swing).
 

@@ -4,4 +4,4 @@
 
 - new: initial version, copied from [fanfix](https://github.com/nikiroo/fanfix)
 - new: use git submodules instead of sub branches
-
+- new: remove configure.sh, use simple Makefile
